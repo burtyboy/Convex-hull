@@ -85,10 +85,64 @@ def amethod(listPts):
     """Returns the convex hull vertices computed using 
           a third algorithm
     """
-    #Your implementation goes here    
+    chull = []
+    minimum_point = listPts[get_start_point(listPts)]
+    maximum_point = listPts[get_max(listPts)]
+    left = []
+    right = []
+    
+    for point in listPts:
+        side = line_fn(maximum_point, minimum_point, point)
+        if  side > 0:
+            right.append(point)
+        elif side < 0:
+            left.append(point)
+    chull.append(minimum_point)
+    chull.append(maximum_point)
+    chull = find_hull(left, minimum_point, maximum_point, chull)
+    chull = find_hull(right, minimum_point, maximum_point, chull)
+    
     return chull
 
 
+def split_point(pointA, pointB, pointC, listPts):
+    """ takes a list of points and a two points in this list and splits the list by
+        those on the left and right of the line drawn between the two points
+        this funtction removes colinear points. 
+        """
+    outsideAC = []
+    outsideCB= []
+    
+    for point in listPts:
+        sideAC = line_fn(pointA, pointC, point)
+        sideCB = line_fn(pointC, pointB, point)
+        if  sideAC > 0:
+            outsideAC.append(point)
+        elif sideCB > 0:
+            outsideCB.append(point)    
+    return outsideAC, outsideCB
+    
+    
+def find_hull(listPts, pointA, pointB, chull):
+    """ Takes a list of points and using a quick hull algoithm forms a convex hull
+    """
+    max_dist_point = 0
+    max_dist_point_dist = 0
+    if len(listPts) == 0:
+        return chull #degenrate case
+    for point in listPts:
+        dist = abs(line_fn(pointA, pointB, point))
+        if dist > max_dist_point_dist:
+            max_dist_point = point
+            max_dist_point_dist = dist
+            
+    chull.append(max_dist_point)
+    outsideAC, outsideCB = split_point(pointA, pointB, max_dist_point, listPts)
+    find_hull(outsideAC, pointA, max_dist_point, chull)
+    find_hull(outsideCB, max_dist_point, pointB, chull)
+    return chull
+    
+    
 def get_start_point(listPts):
     """ Takes a list and returns the index of the point with the lowest y value
         if two points have equal y values it takes the "right-most" point of these two.
@@ -105,6 +159,20 @@ def get_start_point(listPts):
     return y_min_index
 
 
+def get_max(listPts):
+    """ takes a list of points and returns the max point uses the leftmost point
+        if the Y values are equal
+        """
+    y_max_index = 0 #set to first point arbitrally
+    for current_point_index in range(1, len(listPts)-1):
+        point = listPts[current_point_index]
+        if point[1] == listPts[y_max_index][1]:
+            if point[0] > listPts[y_max_index][0]:
+                y_max_index = current_point_index
+        elif point[1] > listPts[y_max_index][1]:
+            y_max_index = current_point_index
+    return y_max_index    
+    
 def theta(pointA, pointB):
     """ Implmentation of the Theta function as shown in lectures.
         using an aproximation to the angle to avoid Trigonometric functions
@@ -138,20 +206,21 @@ def isCCW(pointA, pointB, pointC):
     
     
 def main():
-    listPts = readDataPts('Set_B.dat', 30000)  #File name, numPts given as example only
-    giftwrap_run = (giftwrap(listPts))
-    listPts = readDataPts('Set_B.dat', 30000) #You may replace these three print statements
-    graham = (grahamscan(listPts))   #with any code for validating your outputs
-    if len(giftwrap_run) == len(graham):
-        print("Both are of equal Length: {}".format(len(giftwrap_run)))
-        for i in range(0, len(giftwrap_run)):
-            if giftwrap_run[i] != graham[i]:
-                print("the lists differ at index {}, giftwrap: {} Grahams: {}".format(i, giftwrap_run[i], graham[i]))
-        else:
-            print("The lists are identical")
-    else:
-        print("The lists have differant lengths, giftwrap: {} Grahams: {}".format(len(giftwrap_run), len(graham)))
-    #print (amethod(listPts))     
+    listPts = readDataPts('Set_A.dat', 30000)  #File name, numPts given as example only
+    #giftwrap_run = (giftwrap(listPts))
+    #listPts = readDataPts('Set_B.dat', 30000) #You may replace these three print statements
+    #graham = (grahamscan(listPts))   #with any code for validating your outputs
+    #if len(giftwrap_run) == len(graham):
+        #print("Both are of equal Length: {}".format(len(giftwrap_run)))
+        #for i in range(0, len(giftwrap_run)):
+            #if giftwrap_run[i] != graham[i]:
+                #print("the lists differ at index {}, giftwrap: {} Grahams: {}".format(i, giftwrap_run[i], graham[i]))
+        #else:
+            #print("The lists are identical")
+    #else:
+        #print("The lists have differant lengths, giftwrap: {} Grahams: {}".format(len(giftwrap_run), len(graham)))
+        #print(graham)
+    print (amethod(listPts))
 
  
 if __name__  ==  "__main__":
